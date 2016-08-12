@@ -35,7 +35,7 @@ namespace C0DE8\MySQLPhinx;
 error_reporting(E_ALL & ~E_NOTICE & ~E_WARNING);
 
 // version and release date
-define('VERSION', '0.1.0');
+define('VERSION', '0.1.1');
 define('STATE', 'beta');
 define('DATE', '2016-08-12');
 
@@ -44,9 +44,10 @@ define('DATE', '2016-08-12');
 // Classes
 
 /**
- * Color (CLI colors)
+ * Class Color
  *
- * @author Bjorn Ellebrecht
+ * @package C0DE8\MySQLPhinx
+ * @author  Bjoern Ellebrecht (C0DE8)
  */
 class Color
 {
@@ -113,7 +114,6 @@ class Color
      * @param  string $message
      * @param  null   $foregroundColor
      * @param  string $backgroundColor
-     *
      * @return string $output
      */
     public static function make(
@@ -124,22 +124,32 @@ class Color
         $output = '';
 
         if (isset(self::$_foregroundColor[$foregroundColor])) {
-            $output .= self::OPEN_COLOR . self::$_foregroundColor[$foregroundColor] . self::CLOSE_COLOR;
+            $output .= self::enclose(self::$_foregroundColor[$foregroundColor]);
         }
 
         if (isset(self::$_backgroundColor[$backgroundColor])) {
-            $output .= self::OPEN_COLOR . self::$_backgroundColor[$backgroundColor] . self::CLOSE_COLOR;
+            $output .= self::enclose(self::$_backgroundColor[$backgroundColor]);
         }
 
         return $output . $message . self::DEFAULT_COLOR;
     }
 
+    /**
+     * @param  $color
+     * @return string
+     */
+    protected static function enclose($color)
+    {
+        return  self::OPEN_COLOR . $color . self::CLOSE_COLOR;
+    }
+
 }
 
 /**
- * Console for managing options/usgae
+ * Class Console
  *
- * @author Bjorn Ellebrecht
+ * @package C0DE8\MySQLPhinx
+ * @author  Bjoern Ellebrechtr (C0DE8)
  */
 class Console
 {
@@ -245,6 +255,12 @@ class Console
 
 }
 
+/**
+ * Class Console2Config
+ *
+ * @package C0DE8\MySQLPhinx
+ * @author  Bjoern Ellebrecht (C0DE8)
+ */
 class Console2Config
 {
 
@@ -276,7 +292,7 @@ class Console2Config
     /**
      * @var string
      */
-    const DEFAULT_OUTPUT = '_initial_migration.php';
+    const DEFAULT_OUTPUT = 'initial_migration.php';
 
     /**
      * @var array
@@ -332,9 +348,10 @@ class Console2Config
 }
 
 /**
- * MySQL 2 Phinx Initializer
+ * Class MySQL2PhinxInitializer
  *
- * @author Bjoern Ellebrecht
+ * @package C0DE8\MySQLPhinx
+ * @author  Bjoern Ellebrecht (C0DE8)
  */
 class MySQL2PhinxInitializer
 {
@@ -378,7 +395,10 @@ class MySQL2PhinxInitializer
     public function getTables()
     {
         if (!($result = $this->_getConnection()->query(self::SHOW_TABLES))) {
-            throw new \RuntimeException('ERROR: unable to execute "show table;" on mysql server ' . $this->_getMySQLNativeError());
+            throw new \RuntimeException(
+                'ERROR: unable to execute "show table;" on mysql server '
+                . $this->_getMySQLNativeError()
+            );
         }
         return array_map(function($a) { return $a[0]; }, $result->fetch_all());
     }
@@ -390,7 +410,10 @@ class MySQL2PhinxInitializer
     public function getCreateTable($table)
     {
         if (!($res = $this->_mysqlResource->query(self::SHOW_CREATE_TABLE . '`' . $table . '`'))) {
-            throw new \RuntimeException('ERROR: unable to get create table form mysql server ' . $this->_getMySQLNativeError());
+            throw new \RuntimeException(
+                'ERROR: unable to get create table form mysql server '
+                . $this->_getMySQLNativeError()
+            );
         }
 
         $resArr = $res->fetch_assoc();
@@ -405,11 +428,15 @@ class MySQL2PhinxInitializer
     {
         if (null === $this->_mysqlResource) {
             if (!($this->_mysqlResource = \mysqli_init())) {
-                throw new \RuntimeException('ERROR: unable to initialize mysqli object');
+                throw new \RuntimeException(
+                    'ERROR: unable to initialize mysqli object'
+                );
             }
 
             if(!($this->_mysqlResource->options(MYSQLI_OPT_CONNECT_TIMEOUT, 10))) {
-                throw new \RuntimeException('ERROR: unable to set mysqli option (connection timeout)');
+                throw new \RuntimeException(
+                    'ERROR: unable to set mysqli option (connection timeout)'
+                );
             }
             $result = $this->_mysqlResource->real_connect(
                 $this->_config['host'],
@@ -421,7 +448,8 @@ class MySQL2PhinxInitializer
 
             if (!$result) {
                 throw new \RuntimeException(
-                    'ERROR: unable to connect to mysql server ' . $this->_getMySQLNativeError()
+                    'ERROR: unable to connect to mysql server '
+                    . $this->_getMySQLNativeError()
                 );
             }
         }
@@ -440,9 +468,10 @@ class MySQL2PhinxInitializer
 }
 
 /**
- * Tempate
+ * Class Template
  *
- * @author Bjoern Ellebrecht
+ * @package C0DE8\MySQLPhinx
+ * @author  Bjoern Ellebrecht (C0DE8)
  */
 class Template
 {
@@ -488,16 +517,18 @@ TMPL;
 }
 
 /**
- * Output Builder
+ * Class OutputBuilder
  *
- * @author Bjoern Ellebrecht
+ * @package C0DE8\MySQLPhinx
+ * @author  Bjoern Ellebrecht (C0DE8)
  */
 class OutputBuilder
 {
 
-    protected $_skipTable = array(
-        'phinxlog'
-    );
+    /**
+     * @var array
+     */
+    protected $_skipTable = array('phinxlog');
 
     /**
      * @var MySQL2PhinxInitializer
@@ -505,13 +536,26 @@ class OutputBuilder
     protected $_initlializer;
 
 
-    public function __construct(MySQL2PhinxInitializer $initializer, Template $template, array $skipTable = null)
-    {
+    /**
+     * OutputBuilder constructor.
+     *
+     * @param MySQL2PhinxInitializer $initializer
+     * @param Template $template
+     * @param array|null $skipTable
+     */
+    public function __construct(
+        MySQL2PhinxInitializer $initializer,
+        Template $template,
+        array $skipTable = null
+    ) {
         $this->_initializer = $initializer;
         $this->_template    = $template;
         $this->_skipTable   = $skipTable;
     }
 
+    /**
+     * @return string
+     */
     public function build()
     {
         $initialMigrationPhpCode = '';
@@ -539,7 +583,7 @@ class OutputBuilder
 
 }
 // END classes
-// #####################################################################################################################
+// #############################################################################
 
 
 echo PHP_EOL;
