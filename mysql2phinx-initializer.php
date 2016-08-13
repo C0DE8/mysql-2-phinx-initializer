@@ -35,9 +35,9 @@ namespace C0DE8\MySQLPhinx;
 error_reporting(E_ALL & ~E_NOTICE & ~E_WARNING);
 
 // version and release date
-define('VERSION', '0.1.1');
+define('VERSION', '0.1.2');
 define('STATE', 'beta');
-define('DATE', '2016-08-12');
+define('DATE', '2016-08-13');
 
 
 // #############################################################################
